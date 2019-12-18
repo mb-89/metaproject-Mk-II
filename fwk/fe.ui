@@ -6,13 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>407</width>
-    <height>279</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
-  </property>
-  <property name="windowIcon">
-   <iconset resource="frontend.qrc">
-    <normaloff>:/icon_main</normaloff>:/icon_main</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -32,14 +28,24 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QTreeView" name="treeView">
-      <property name="alternatingRowColors">
-       <bool>true</bool>
+     <layout class="QVBoxLayout" name="centralLayout">
+      <property name="spacing">
+       <number>0</number>
       </property>
-      <attribute name="headerVisible">
-       <bool>false</bool>
-      </attribute>
-     </widget>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -49,15 +55,13 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>407</width>
+     <width>800</width>
      <height>21</height>
     </rect>
    </property>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="frontend.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

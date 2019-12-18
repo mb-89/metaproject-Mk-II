@@ -1,0 +1,5 @@
+{
+    "log": "feature_log/feature_log.py",
+    "cmd": "feature_cmd.py",
+    "help":"feature_help.py"
+}
