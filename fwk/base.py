@@ -8,27 +8,32 @@ import argparse
 import common
 import sys
 import importlib
+import pkg_resources
+import os
 
 class App(QApplication, common.NestedObj):
     def __init__(self):
         super().__init__(None)
 
-        srcpath = op.join(op.dirname(__file__))
-        self.appinfo = json.loads(open(op.join(srcpath, "appinfo.json"),"r").read())
+        self.appinfo = json.loads(pkg_resources.resource_string(__name__, "appinfo.json"))
 
         parser = argparse.ArgumentParser(description=self.appinfo["description"])
         parser.add_argument("--workspace", type=str, help = "folder to work in.", default = None)
         parser.add_argument("--features", type=str, help = "folder from which to import features.", default = None)
         self.cfg = vars(parser.parse_args())
 
-        workspacepath = op.join(srcpath, "..","workspace") if not self.cfg["workspace"] else op.abspath(self.cfg["workspace"])
+
+        if self.cfg["workspace"]: workspacepath = op.abspath(self.cfg["workspace"])
+        else: workspacepath = op.abspath(op.join(os.getcwd(),"workspace"))
+
+        os.makedirs(workspacepath,exist_ok=True)
         
         cfgpath = op.join(workspacepath,"cfg.json")
         addcfg = json.loads(open(cfgpath,"r").read()) if op.isfile(cfgpath) else {}
         for k,v in addcfg: self.cfg[k] = v
         self.cfg["workspace"] = workspacepath
 
-        featurepath   = op.join(srcpath, "..","feat") if self.cfg["features"] is None else op.abspath(self.cfg["features"])
+        featurepath   = pkg_resources.resource_filename(__name__, "/../feat") if self.cfg["features"] is None else op.abspath(self.cfg["features"])
         self.cfg["features"] = featurepath
 
         self.backend  = Backend(self)

@@ -28,6 +28,7 @@ class cmd(common.Feature):
         return None
 
 class IntegratedCmd(QtWidgets.QDockWidget):
+    executeCmd = QtCore.pyqtSignal(dict)
     def __init__(self, app):
         super().__init__(app.frontend)
         self.rootapp = app
@@ -42,6 +43,7 @@ class IntegratedCmd(QtWidgets.QDockWidget):
         self.setAllowedAreas(QtCore.Qt.TopDockWidgetArea)
         self.setVisible(False)
         self.repattern = re.compile(r"(.*)\((.*)\)")
+        self.executeCmd.connect(self.rootapp.backend.executeCmd)
 
         toggleCmd = common.GUIcmd("Tools/show cmd",self.togglehide,descr = "opens / hides the console bar", shortcut = "Ctrl+^")
 
@@ -58,16 +60,24 @@ class IntegratedCmd(QtWidgets.QDockWidget):
         if not txt.endswith(")"):txt+="()"
         try:self.rootapp.frontend.ui.logwindow.setHidden(False)
         except:pass
-        try:
-            cmd,args = self.repattern.match(txt).groups()
-            cmdobj = self.rootapp.backend.CMD[cmd]
-        except:
-            self.rootapp.log.error(f">>> {txt}: invalid cmd")
+
+        try: cmd,args = self.repattern.match(txt).groups()
+        except: 
+            self.rootapp.log.error(f">>> {txt}: syntax error")
             return
+        #    
+        #    cmdobj = self.rootapp.backend.CMD[cmd]
+        #except:
+        #    
+        #    return
 
-        self.rootapp.log.info(f">>> {txt}")
-        cmdobj.run(args,self.parseresult)
-
+        #self.rootapp.log.info(f">>> {txt}")
+        cmdDict = {
+            "args": args,
+            "cmd": cmd,
+            "callback":self.parseresult
+        }
+        self.executeCmd.emit(cmdDict)
 
     def parseresult(self,res):
         if res["retcode"] != 0:

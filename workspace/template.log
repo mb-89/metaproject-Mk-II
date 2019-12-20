@@ -1,6 +1,5 @@
-2019-12-18 19:53:28,290	DEBUG	started logging into text widget
-2019-12-18 19:53:33,147	INFO	>>> help()
-2019-12-18 19:53:33,148	INFO	template help
+2019-12-20 12:10:27,169	DEBUG	started logging into text widget
+2019-12-20 12:10:32,992	INFO	template help
 
 available backend commands / help(<cmd>) for details
 help	prints help for backend cmds	3 args	0 rets
