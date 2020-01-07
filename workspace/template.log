@@ -1,8 +1,1 @@
-2019-12-20 12:10:27,169	DEBUG	started logging into text widget
-2019-12-20 12:10:32,992	INFO	template help
-
-available backend commands / help(<cmd>) for details
-help	prints help for backend cmds	3 args	0 rets
-log.info	logs info message	1 args	0 rets
-
-
+2020-01-07 19:45:53,371	DEBUG	started logging into text widget

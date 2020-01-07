@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\template\fwk\fe.ui'
+# Form implementation generated from reading ui file '.\fe.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.2
 #
@@ -16,16 +16,6 @@ class Ui_ui(object):
         ui.resize(800, 600)
         self.centralWidget = QtWidgets.QWidget(ui)
         self.centralWidget.setObjectName("centralWidget")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralWidget)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setSpacing(0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.centralLayout = QtWidgets.QVBoxLayout()
-        self.centralLayout.setSpacing(0)
-        self.centralLayout.setObjectName("centralLayout")
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.centralLayout.addItem(spacerItem)
-        self.verticalLayout.addLayout(self.centralLayout)
         ui.setCentralWidget(self.centralWidget)
         self.statusBar = QtWidgets.QStatusBar(ui)
         self.statusBar.setObjectName("statusBar")

@@ -6,7 +6,7 @@ and is different from application-specific features. It replaces the
 logger placeholder of the rootapp with a proper logging object and 
 adds the logging options tab to the "options" menu.
 """
-import common
+from fwk import common
 import sys
 import logging
 import os.path as op
@@ -16,8 +16,22 @@ class Log(common.Feature):
     enabled = True
     name = "log"
 
-    @classmethod
-    def integrateBackend(cls, app):
+    def __init__(self, app):
+        super().__init__(app) #app is now our parent
+        self.rootapp = app
+        self.backend = LogBackend(self)
+        self.frontend = LogFrontend(self)
+
+        #these are the public commands/data of this feature
+        self.backend.addChild(CMD_LogInfo(app))
+        self.frontend.addChild(common.GUIcmd("Tools/show log",  self.frontend.logwindow.togglehide,descr = "opens / hides the log window", shortcut = "Ctrl+L"))
+        self.frontend.addChild(common.GUIcmd("Options/logging", self.frontend.optwindow.togglehide,descr = "opens / hides the log option window"))
+
+class LogBackend(common.FeatureBackend):
+    def __init__(self, rootfeature):
+        super().__init__(rootfeature) #backend is now our parent
+
+        app = self.rootapp
         log = logging.getLogger(app.appinfo["name"])
         path = app.cfg["workspace"]
         log.setLevel(logging.DEBUG)
@@ -34,31 +48,22 @@ class Log(common.Feature):
         sys.stdout = log._STDoutLogger
         app.log = log
 
-        parent = common.NestedObj(app)
+class LogFrontend(common.FeatureFrontend):
+    def __init__(self, rootfeature):
+        super().__init__(rootfeature) #frontend is now our parent
 
-        infocmd = CMD_LogInfo(app) #lets expose the log cmds so we could use them via an external automation tool
-
-        parent.addChild(infocmd)
-
-        return parent
-
-    @classmethod
-    def integrateFrontend(cls, app): 
-        """
-        we build a logging window, add logging to the status bar and 
-        add the logging options to the options menu
-        """
+        app = self.rootapp
         ui = app.frontend.ui
-        parent = common.NestedObj(app)
         ui.logwindow = LogWidget(app.frontend,app)
-        parent.logwindow = ui.logwindow
-        parent.optwindow = LogOptions(app.frontend,app)
+        self.logwindow = ui.logwindow
+        self.optwindow = LogOptions(app.frontend,app)
 
-        toggleLog = common.GUIcmd("Tools/show log",parent.logwindow.togglehide,descr = "opens / hides the log window", shortcut = "Ctrl+L")
-        toggleOpt = common.GUIcmd("Options/logging",parent.optwindow.togglehide,descr = "opens / hides the log window")
-
-        parent.addChild(toggleLog)
-        parent.addChild(toggleOpt)
+        #add to statusbar:
+        widget = ui.statusBar
+        QtHandler = QtLog2StatusBarHandler()
+        QtHandler.setFormatter(app.log._fmt)
+        QtHandler.sig.connect(lambda x: widget.showMessage(x, 0))
+        app.log.addHandler(QtHandler)
 
         #add to statusbar:
         widget = ui.statusBar
@@ -70,11 +75,9 @@ class Log(common.Feature):
         #add to widget
         QtHandler = QtLog2TextEditHandler()
         QtHandler.setFormatter(app.log._fmt)
-        QtHandler.sig.connect(parent.logwindow.widget().append)
+        QtHandler.sig.connect(self.logwindow.widget().append)
         app.log.addHandler(QtHandler)
         app.log.debug("started logging into text widget")
-
-        return parent
 
 class LogWidget(QtWidgets.QDockWidget):
     def __init__(self, parent, app):

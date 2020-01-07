@@ -1,0 +1,9 @@
+*.pdf
+*.pyc
+*.log
+LaTeX/out/*.*
+*.aux
+*.fdb_latexmk
+*.fls
+*.txt
+workspace/LaTeX/autogen_contents.tex

@@ -1,15 +1,18 @@
 from .be import Backend
 from .fe import Frontend
+from fwk import common
+
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QApplication
+
 import os.path as op
 import json
 import argparse
-import common
 import sys
 import importlib
 import pkg_resources
 import os
+
+CODE_RESTART = -1337
 
 class App(QApplication, common.NestedObj):
     def __init__(self):
@@ -44,8 +47,13 @@ class App(QApplication, common.NestedObj):
     def buildFeatureFileDict(self, featdir):
         try: fDict = json.loads(open(op.join(featdir,"features.json"),"r").read())
         except: return {}
+        poplist = []
         for k in fDict:
+            if k.startswith("_"):
+                poplist.append(k)
+                continue
             fDict[k] = op.abspath(op.join(featdir,fDict[k]))
+        for k in poplist: fDict.pop(k)
         return fDict
 
     def integrateFeatures(self):
@@ -63,20 +71,21 @@ class App(QApplication, common.NestedObj):
                     if issubclass(x, common.Feature): feats.append(x)
                 except: continue
 
-        self.features = {}
+        self.FEAT = {}
         for fc in feats:
             if not fc.isCompatibleWith(self):return
-            be = fc.integrateBackend(self)
-            fe = fc.integrateFrontend(self)
-            if be is None and fe is None: continue
-            self.features[fc.name] = {"backend":be,"frontend":fe}
+            self.FEAT[fc.name] = fc(self)
         
         guicmds = []
         backendcmds = []
+        dataelems = []
         self.findInChildren(common.GUIcmd,guicmds)
         self.findInChildren(common.Backendcmd,backendcmds)
+        self.findInChildren(common.BackendData,dataelems)
+
         self.frontend.buildMenues(guicmds)
-        self.backend.CMD = dict([(x.name, x) for x in backendcmds])
+        self.CMD = dict([(x.name, x) for x in backendcmds])
+        self.DATA = dict([(x.name, x) for x in dataelems])
 
     def prepare(self):
         self.setApplicationDisplayName(self.appinfo["name"])
@@ -84,4 +93,4 @@ class App(QApplication, common.NestedObj):
 
     def start(self):
         super().start()
-        sys.exit(self.exec_())
+        return self.exec_()

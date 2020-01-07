@@ -1,6 +1,6 @@
-import common
+from fwk import common
 from . import fe_ui
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 class Frontend(QtWidgets.QMainWindow, common.NestedObj):
     def __init__(self, rootapp):

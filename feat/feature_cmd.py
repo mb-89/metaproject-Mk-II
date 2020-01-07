@@ -3,7 +3,7 @@ cmd feature
 
 Adds a commandline to the GUI that can be used to trigger all available backend commands
 """
-import common
+from fwk import common
 import re
 
 from PyQt5 import QtWidgets,QtCore
@@ -12,26 +12,26 @@ class cmd(common.Feature):
     enabled = True
     name = "cmd"
 
-    @classmethod
-    def integrateBackend(cls, app):
-        pass #we need no additional backend code
-
-    @classmethod
-    def integrateFrontend(cls, app): 
-        """
-        we add the commandline to the top of the window
-        """
-        ui = app.frontend.ui
-        #add cmdline:
-        cmdline = IntegratedCmd(app)
-
-        return None
-
-class IntegratedCmd(QtWidgets.QDockWidget):
-    executeCmd = QtCore.pyqtSignal(dict)
     def __init__(self, app):
-        super().__init__(app.frontend)
+        super().__init__(app) #app is now our parent
         self.rootapp = app
+        self.backend = common.FeatureBackend(self)
+        self.frontend = CmdFrontend(self)
+
+        #these are the public commands/data of this feature
+        app.frontend.addChild(common.GUIcmd("Tools/show cmd",self.frontend.widget.togglehide,descr = "opens / hides the console bar", shortcut = "Ctrl+^"))
+
+class CmdFrontend(common.FeatureFrontend):
+    def __init__(self, rootfeature):
+        super().__init__(rootfeature) #frontend is now our parent
+        self.widget = CmdWidget(self)
+
+class CmdWidget(QtWidgets.QDockWidget):
+    executeCmd = QtCore.pyqtSignal(dict)
+    def __init__(self, parent):
+        super().__init__()
+        self.rootapp = parent.rootapp
+        app = parent.rootapp
         self.txt = QtWidgets.QLineEdit(self)
         empty = QtWidgets.QWidget(self)
         self.setTitleBarWidget(empty)
@@ -44,10 +44,6 @@ class IntegratedCmd(QtWidgets.QDockWidget):
         self.setVisible(False)
         self.repattern = re.compile(r"(.*)\((.*)\)")
         self.executeCmd.connect(self.rootapp.backend.executeCmd)
-
-        toggleCmd = common.GUIcmd("Tools/show cmd",self.togglehide,descr = "opens / hides the console bar", shortcut = "Ctrl+^")
-
-        app.frontend.addChild(toggleCmd)
 
     def togglehide(self):
         self.setVisible(not self.isVisible())

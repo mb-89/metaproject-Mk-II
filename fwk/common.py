@@ -25,9 +25,12 @@ class NestedObj(QtCore.QObject):
     def addChild(self, child):
         self.children.append(child)
         child.parent = self
+        return child
 
-    def findInChildren(self, targetclass, _container = list()):
-        if isinstance(self, targetclass): _container.append(self)
+    def findInChildren(self, targetclass, _container = None):
+        if _container is None: _container = []
+        if issubclass(self.__class__, targetclass) or isinstance(self, targetclass): 
+            _container.append(self)
         for x in self.children:
             x.findInChildren(targetclass, _container)
         return _container
@@ -39,10 +42,18 @@ class Feature(NestedObj):
     def isCompatibleWith(cls, app):
         if not cls.enabled: return False
         return True
-    @classmethod
-    def integrateBackend(cls, app): return None
-    @classmethod
-    def integrateFrontend(cls, app): return None
+
+class FeatureBackend(NestedObj):
+    def __init__(self, rootfeature):
+        super().__init__(rootfeature)
+        self.rootapp = rootfeature.rootapp
+        self.rootfeature = rootfeature
+
+class FeatureFrontend(NestedObj):
+    def __init__(self, rootfeature):
+        super().__init__(rootfeature)
+        self.rootapp = rootfeature.rootapp
+        self.rootfeature = rootfeature
 
 class LogPlaceholder(): #dont use this, replace it with a proper logger early
     def info(self, info, *args, **kwargs):print(f"INFO: {msg}")
@@ -129,16 +140,16 @@ class Backendcmd(NestedObj):
         retdict["retcode"] = 0 if argsOk else -1
         retdict["err"] = "" if argsOk else "invalid args"
 
-        QtCore.QTimer.singleShot(0,lambda: cb(retdict))
+        #QtCore.QTimer.singleShot(0,lambda: cb(retdict))
         return args, retdict, argsOk
 
     def run(self, args, cb):
         argdict, retdict, ok = self.parseargs(args,cb)
         if not ok: return
         
-        for progress in self.execute(argdict,retdict):pass
+        for progress in self.execute(argdict,retdict):
+            pass
         cb(retdict)
-
 class Backendarg():
     def __init__(self, name, argtype, descr, default = None):
         self.name = name
@@ -151,3 +162,7 @@ class Backendarg():
 
     def __str__(self):
         return f"{self.name}\t{self.descr}\t{self.argtype}\tdefault: {self.default}"
+class BackendData(NestedObj):
+    def __init__(self, parent, name):
+        super().__init__(parent)
+        self.name = name

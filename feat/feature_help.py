@@ -3,7 +3,7 @@ help feature
 
 adds a backend cmd that prints all backend cmd helps
 """
-import common
+from fwk import common
 
 from PyQt5 import QtWidgets
 
@@ -11,10 +11,14 @@ class help(common.Feature):
     enabled = True
     name = "help"
 
-    @classmethod
-    def integrateBackend(cls, app):
-        parent = common.NestedObj(app)
-        parent.addChild(CMD_help(app))
+    def __init__(self, app):
+        super().__init__(app) #app is now our parent
+        self.rootapp = app
+        self.backend = common.FeatureBackend(self)
+        self.frontend = common.FeatureFrontend(self)
+
+        #these are the public commands/data of this feature
+        self.backend.addChild(CMD_help(app))
 
 class CMD_help(common.Backendcmd):
     name = "help"
@@ -30,14 +34,14 @@ class CMD_help(common.Backendcmd):
 
         if argdict["cmd"] == "" and argdict["rettype"] == 0: #case 0: create text for all cmds
             lines = [self.rootapp.appinfo['name']+" help\n\navailable backend commands / help(<cmd>) for details"]
-            for x in sorted(self.rootapp.backend.CMD.keys()):
-                cmd = self.rootapp.backend.CMD[x]
+            for x in sorted(self.rootapp.CMD.keys()):
+                cmd = self.rootapp.CMD[x]
                 lines.append(f"{x}\t{cmd.description}\t{len(cmd.args)} args\t{len(cmd.rets)} rets")
             lines.append("\n")
             txt = "\n".join(lines)
         
         if argdict["cmd"] != "" and argdict["rettype"] == 0: #case 1: create text for specific cmd
-            target = self.rootapp.backend.CMD.get(argdict["cmd"] )
+            target = self.rootapp.CMD.get(argdict["cmd"] )
             if target is None: 
                 retdict["retcode"] = -2
                 retdict["err"] = f"cmd {argdict['cmd']} not available"
@@ -50,14 +54,6 @@ class CMD_help(common.Backendcmd):
             for ret in target.rets:lines.append(f"{str(ret)}")
             lines.append("\n")
             txt = "\n".join(lines)
-
-
-            #lines = [self.rootapp.appinfo['name']+" help:\n\navailable backend commands / help(<cmd>) for details:"]
-            #for x in sorted(self.rootapp.backend.CMD.keys()):
-            #    cmd = self.rootapp.backend.CMD[x]
-            #    lines.append(f"{x}\t{cmd.description}\t{len(cmd.args)} args\t{len(cmd.rets)} rets")
-            #txt = "\n".join(lines)
-
 
         if argdict["log"]:
             self.rootapp.log.info(txt)
